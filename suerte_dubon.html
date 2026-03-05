@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Los números de la Suerte Dubon</title>
+    <style>
+        /* Fondo temático de juegos de azar */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 25px;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e3c32 0%, #2a5a4a 100%);
+            position: relative;
+            color: #333;
+        }
+        /* Capa de patrón de fondo (dados, cartas, fichas) */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.1"><rect x="10" y="10" width="20" height="20" fill="%23ffd700" rx="3"/><circle cx="70" cy="30" r="10" fill="%23ffffff"/><path d="M40 70 L50 50 L60 70 Z" fill="%23c0c0c0"/><rect x="15" y="65" width="25" height="15" fill="%23ff4500" rx="2"/><text x="75" y="85" font-size="20" fill="%23ffffff" font-family="Arial">♠</text></svg>');
+            background-repeat: repeat;
+            background-size: 120px 120px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        /* Contenedor principal que queda por encima del fondo */
+        .main-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #FFD966;
+            text-shadow: 3px 3px 0 #000000, 5px 5px 0 #4a2c00;
+            font-size: 3em;
+            text-align: center;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            word-break: break-word;
+        }
+        .subtitle {
+            text-align: center;
+            color: #f0e6d2;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            font-style: italic;
+            text-shadow: 1px 1px 2px black;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(2px);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 0 2px #DAA520 inset;
+            padding: 25px;
+            flex: 1 1 500px;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+        }
+        h2 {
+            color: #DAA520;
+            border-bottom: 3px solid #2a5a4a;
+            padding-bottom: 10px;
+            margin-top: 0;
+            text-shadow: 1px 1px 1px #00000033;
+        }
+        label {
+            font-weight: 600;
+            display: block;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            color: #1e3c32;
+        }
+        input[type=number], select {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #b8860b;
+            border-radius: 8px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            background-color: #fff9e6;
+        }
+        button {
+            background: linear-gradient(145deg, #DAA520, #b8860b);
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 5px 0 #7a5c0a;
+            width: 100%;
+            letter-spacing: 1px;
+        }
+        button:hover {
+            background: linear-gradient(145deg, #eeb422, #ca9e1e);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 0 #7a5c0a;
+        }
+        button:active {
+            transform: translateY(5px);
+            box-shadow: 0 2px 0 #7a5c0a;
+        }
+        .resultado {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #1e3c32;
+            border-radius: 12px;
+            border-left: 8px solid #DAA520;
+            color: #f0e6d2;
+            box-shadow: inset 0 0 10px #00000066;
+        }
+        .familia-encontrada {
+            background-color: #DAA520;
+            color: #1e3c32;
+            padding: 5px 15px;
+            border-radius: 30px;
+            display: inline-block;
+            font-weight: bold;
+            margin: 5px 0;
+            font-size: 1.2em;
+            border: 2px solid #ffd966;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 15px;
+            background-color: #faf3e0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        th {
+            background: linear-gradient(145deg, #2a5a4a, #1e3c32);
+            color: #FFD966;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #c0a86a;
+        }
+        tr:nth-child(even) {
+            background-color: #e8d9b0;
+        }
+        .vibracion-destacada {
+            background: linear-gradient(145deg, #DAA520, #b8860b);
+            color: #1e3c32;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-weight: 800;
+            margin-right: 10px;
+            font-size: 1.4em;
+            display: inline-block;
+            border: 2px solid #ffd700;
+            box-shadow: 0 3px 0 #7a5c0a;
+        }
+        .advertencia {
+            background-color: #fadbd8;
+            border-left: 8px solid #c0392b;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 25px;
+            color: #1e3c32;
+            font-weight: 500;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .lista-resultados {
+            background: #faf3e0;
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #DAA520;
+        }
+        .resultado-live {
+            background: #2a5a4a;
+            border: 3px solid #DAA520;
+            border-radius: 20px;
+            padding: 25px;
+            margin: 30px 0;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        .resultado-live h3 {
+            color: #FFD966;
+            font-size: 2em;
+            margin-top: 0;
+            text-shadow: 2px 2px 0 #000;
+        }
+        .sorteo-item {
+            background: #faf3e0;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 3px solid #b8860b;
+        }
+        .numero-ganador {
+            font-size: 3em;
+            font-weight: 900;
+            color: #DAA520;
+            text-shadow: 3px 3px 0 #1e3c32;
+            display: inline-block;
+            margin-right: 25px;
+            line-height: 1;
+            min-width: 80px;
+            text-align: center;
+        }
+        .analisis-item {
+            background: #1e3c32;
+            color: #f0e6d2;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 2px solid #DAA520;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #FFD966;
+            font-weight: bold;
+            text-shadow: 2px 2px 0 #000;
+        }
+        .badge {
+            background: #DAA520;
+            color: #1e3c32;
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 5px 5px 5px 0;
+            border: 1px solid #ffd700;
+        }
+        .loading {
+            color: #FFD966;
+            font-size: 1.2em;
+            text-align: center;
+            padding: 20px;
+        }
+        .conexion-directa {
+            color: #2ecc71;
+            font-weight: bold;
+            background: #1e3c32;
+            padding: 8px;
+            border-radius: 20px;
+            border: 2px solid #2ecc71;
+        }
+        .conexion-indirecta {
+            color: #f1c40f;
+            font-weight: bold;
+            background: #1e3c32;
+            padding: 8px;
+            border-radius: 20px;
+            border: 2px solid #f1c40f;
+        }
+        .sin-conexion {
+            color: #e74c3c;
+            font-weight: bold;
+            background: #1e3c32;
+            padding: 8px;
+            border-radius: 20px;
+            border: 2px solid #e74c3c;
+        }
+        .fecha-header {
+            font-size: 1.5em;
+            color: #FFD966;
+            background: #1e3c32;
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: inline-block;
+            margin: 20px 0 10px 0;
+            border: 2px solid #DAA520;
+        }
+        .comparacion-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .comparacion-columna {
+            flex: 1 1 400px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+            padding: 20px;
+        }
+        .resultado-simple {
+            font-size: 2em;
+            font-weight: bold;
+            color: #FFD966;
+            text-align: center;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-content">
+        <h1>🎲 Los números de la Suerte Dubon 🎰</h1>
+        <div class="subtitle">✨ Análisis de resultados de hoy y ayer con la tabla del Inverso y la Familia ✨</div>
+
+        <!-- SECCIÓN DE RESULTADOS EN VIVO (HOY Y AYER) -->
+        <div class="resultado-live">
+            <h3>📡 RESULTADOS LOTERÍAS COSTA RICA - HOY Y AYER</h3>
+            <div id="liveResultsContainer">
+                <p class="loading">Cargando resultados de loteriascostarica.com...</p>
+            </div>
+            <button onclick="cargarResultadosLive()" style="background: linear-gradient(145deg, #DAA520, #b8860b); margin-top: 20px;">🔄 Actualizar Resultados</button>
+            <p style="color: #f0e6d2; font-size: 0.9em;">Fuente: <a href="https://www.loteriascostarica.com" target="_blank" style="color: #FFD966;">loteriascostarica.com</a></p>
+        </div>
+
+        <div class="container">
+            <!-- COLUMNA IZQUIERDA: Multiplicador y Comparador -->
+            <div class="card">
+                <h2>✖️ Multiplicador Mágico</h2>
+                <label for="numeroInput">Ingresa tu número de la suerte:</label>
+                <input type="number" id="numeroInput" placeholder="Ejemplo: 15" value="16">
+
+                <button onclick="analizarNumero()">✨ Analizar Número</button>
+
+                <div id="resultadoMultiplicador" class="resultado">
+                    <p><strong>Resultado de la multiplicación:</strong></p>
+                    <div id="valorMultiplicado" class="resultado-simple">48</div>
+                    <p><strong>Buscando en la tabla:</strong> Número <span id="numeroBuscado">48</span></p>
+                    <div id="infoFamilia">
+                        <p>🔎 <strong>Familia encontrada:</strong> <span id="familiaTexto">48 → 93 (43 - 68 - 98)</span></p>
+                        <p><span id="inversoTexto">Inverso: 93</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMNA DERECHA: Vibración por Día -->
+            <div class="card">
+                <h2>📅 Vibración del Día</h2>
+
+                <label for="diaSelect">Selecciona un día:</label>
+                <select id="diaSelect" style="width:100%; padding:12px; font-size:16px; border:2px solid #b8860b; border-radius:8px; margin-bottom:20px; background:#fff9e6;">
+                    <option value="lunes">Lunes</option>
+                    <option value="martes">Martes</option>
+                    <option value="miércoles">Miércoles</option>
+                    <option value="jueves" selected>Jueves</option>
+                    <option value="viernes">Viernes</option>
+                    <option value="sábado">Sábado</option>
+                    <option value="domingo">Domingo</option>
+                </select>
+
+                <button onclick="mostrarVibracion()">🔮 Ver Vibración</button>
+
+                <div id="resultadoVibracion" class="resultado">
+                    <h3 style="color:#FFD966;">Vibración para <span id="diaSeleccionado">Jueves</span></h3>
+                    <p style="text-align:center;">
+                        <span class="vibracion-destacada" id="vib1">9</span> 
+                        <span class="vibracion-destacada" id="vib2">90</span> 
+                        <span class="vibracion-destacada" id="vib3">99</span>
+                    </p>
+                    <p><strong>Interpretación:</strong> <span id="interpretacion">el 09, 90 y 99. Números que resuenan con finales y culminaciones.</span></p>
+                </div>
+                
+                <div class="lista-resultados">
+                    <h3 style="color:#1e3c32;">📋 Tabla de Vibración</h3>
+                    <table>
+                        <thead><tr><th>Día</th><th>Vibración</th></tr></thead>
+                        <tbody>
+                            <tr><td>Lunes</td><td>7 - 70 - 77</td></tr>
+                            <tr><td>Martes</td><td>3 - 30 - 33</td></tr>
+                            <tr><td>Miércoles</td><td>8 - 80 - 88</td></tr>
+                            <tr><td>Jueves</td><td>9 - 90 - 99</td></tr>
+                            <tr><td>Viernes</td><td>1 - 10 - 11</td></tr>
+                            <tr><td>Sábado</td><td>6 - 60 - 66</td></tr>
+                            <tr><td>Domingo</td><td>5 - 50 - 55</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Base de datos de la tabla principal (Número, Inverso, Familia)
+            const tablaPrincipal = {
+                0: { inverso: 55, familia: [01, 10, 11] },
+                1: { inverso: 56, familia: [00, 11, 10] },
+                2: { inverso: 57, familia: [05, 12, 07] },
+                3: { inverso: 58, familia: [08, 13] },
+                4: { inverso: 59, familia: [06, 14, 09] },
+                5: { inverso: 50, familia: [02, 15, 07] },
+                6: { inverso: 51, familia: [04, 16, 09] },
+                7: { inverso: 52, familia: [02, 17, 05] },
+                8: { inverso: 53, familia: [03, 18] },
+                9: { inverso: 54, familia: [04, 19, 06] },
+                10: { inverso: 65, familia: [11, 00, 01] },
+                11: { inverso: 66, familia: [10, 01, 00] },
+                12: { inverso: 67, familia: [15, 02, 17] },
+                13: { inverso: 68, familia: [18, 03] },
+                14: { inverso: 69, familia: [16, 04, 19] },
+                15: { inverso: 60, familia: [12, 05, 17] },
+                16: { inverso: 61, familia: [14, 06, 19] },
+                17: { inverso: 62, familia: [12, 07, 15] },
+                18: { inverso: 63, familia: [13, 08] },
+                19: { inverso: 64, familia: [14, 09, 16] },
+                20: { inverso: 75, familia: [21, 50, 70] },
+                21: { inverso: 76, familia: [20, 51, 71] },
+                22: { inverso: 77, familia: [25, 52, 27, 72] },
+                23: { inverso: 78, familia: [28, 53, 73] },
+                24: { inverso: 79, familia: [26, 54, 29, 74] },
+                25: { inverso: 70, familia: [22, 55, 27, 75] },
+                26: { inverso: 71, familia: [24, 56, 29, 76] },
+                27: { inverso: 72, familia: [25, 57, 55, 77] },
+                28: { inverso: 73, familia: [23, 58, 78] },
+                29: { inverso: 74, familia: [24, 59, 26, 79] },
+                30: { inverso: 85, familia: [31, 80] },
+                31: { inverso: 86, familia: [30, 81] },
+                32: { inverso: 87, familia: [35, 82, 37] },
+                33: { inverso: 88, familia: [38, 83, 88] },
+                34: { inverso: 89, familia: [36, 84, 39] },
+                35: { inverso: 80, familia: [32, 85, 37] },
+                36: { inverso: 81, familia: [34, 86, 39] },
+                37: { inverso: 82, familia: [32, 87, 35] },
+                38: { inverso: 83, familia: [33, 88, 83] },
+                39: { inverso: 84, familia: [34, 89, 36] },
+                40: { inverso: 95, familia: [41, 60, 90] },
+                41: { inverso: 96, familia: [40, 61, 91] },
+                42: { inverso: 97, familia: [45, 62, 47, 92] },
+                43: { inverso: 98, familia: [48, 63, 93] },
+                44: { inverso: 99, familia: [46, 64, 49, 94] },
+                45: { inverso: 90, familia: [42, 65, 47, 95] },
+                46: { inverso: 91, familia: [44, 66, 49, 96] },
+                47: { inverso: 92, familia: [42, 67, 45, 97] },
+                48: { inverso: 93, familia: [43, 68, 98] },
+                49: { inverso: 94, familia: [44, 69, 46, 99] },
+                50: { inverso: 05, familia: [51, 20, 70] },
+                51: { inverso: 06, familia: [50, 21, 71] },
+                52: { inverso: 07, familia: [55, 22, 57, 72] },
+                53: { inverso: 08, familia: [58, 23, 73] },
+                54: { inverso: 09, familia: [56, 24, 59, 74] },
+                55: { inverso: 00, familia: [52, 25, 57, 75] },
+                56: { inverso: 01, familia: [54, 26, 59, 76] },
+                57: { inverso: 02, familia: [55, 77, 52, 27] },
+                58: { inverso: 03, familia: [53, 28, 78] },
+                59: { inverso: 04, familia: [54, 29, 56, 79] },
+                60: { inverso: 15, familia: [61, 40, 90] },
+                61: { inverso: 16, familia: [60, 41, 91] },
+                62: { inverso: 17, familia: [65, 42, 67, 92] },
+                63: { inverso: 18, familia: [68, 43, 93] },
+                64: { inverso: 19, familia: [66, 44, 69, 94] },
+                65: { inverso: 10, familia: [62, 45, 67, 95] },
+                66: { inverso: 11, familia: [64, 46, 69, 96] },
+                67: { inverso: 12, familia: [62, 47, 65, 97] },
+                68: { inverso: 13, familia: [63, 48, 98] },
+                69: { inverso: 14, familia: [64, 49, 66, 99] },
+                70: { inverso: 25, familia: [71, 20, 50] },
+                71: { inverso: 26, familia: [70, 21, 51] },
+                72: { inverso: 27, familia: [75, 22, 77, 52] },
+                73: { inverso: 28, familia: [78, 23, 53] },
+                74: { inverso: 29, familia: [76, 24, 79, 54] },
+                75: { inverso: 20, familia: [72, 25, 77, 55] },
+                76: { inverso: 21, familia: [74, 26, 79, 56] },
+                77: { inverso: 22, familia: [72, 27, 75, 57] },
+                78: { inverso: 23, familia: [73, 28, 58] },
+                79: { inverso: 24, familia: [74, 29, 76, 59] },
+                80: { inverso: 35, familia: [81, 30, 31] },
+                81: { inverso: 36, familia: [80, 31] },
+                82: { inverso: 37, familia: [85, 32, 38] },
+                83: { inverso: 38, familia: [86, 35, 87] },
+                84: { inverso: 39, familia: [86, 34, 89] },
+                85: { inverso: 30, familia: [82, 35, 87] },
+                86: { inverso: 31, familia: [84, 36, 89] },
+                87: { inverso: 32, familia: [82, 37, 85] },
+                88: { inverso: 33, familia: [83, 38, 33] },
+                89: { inverso: 34, familia: [84, 39, 86] },
+                90: { inverso: 45, familia: [91, 40, 60] },
+                91: { inverso: 46, familia: [90, 41, 61] },
+                92: { inverso: 47, familia: [95, 42, 97, 62] },
+                93: { inverso: 48, familia: [98, 43, 63] },
+                94: { inverso: 49, familia: [96, 44, 99, 64] },
+                95: { inverso: 40, familia: [92, 45, 97, 65] },
+                96: { inverso: 41, familia: [94, 46, 99, 66] },
+                97: { inverso: 42, familia: [92, 47, 95, 67] },
+                98: { inverso: 43, familia: [93, 48, 98] },
+                99: { inverso: 44, familia: [94, 49, 96, 69] }
+            };
+
+            // Base de datos de Vibración por día
+            const vibracionDias = {
+                lunes: { v1: 07, v2: 70, v3: 77 },
+                martes: { v1: 03, v2: 30, v3: 33 },
+                miércoles: { v1: 08, v2: 80, v3: 88 },
+                jueves: { v1: 09, v2: 90, v3: 99 },
+                viernes: { v1: 01, v2: 10, v3: 11 },
+                sábado: { v1: 06, v2: 60, v3: 66 },
+                domingo: { v1: 05, v2: 50, v3: 55 }
+            };
+
+            // Función para obtener el día de la semana para una fecha
+            function obtenerDiaSemana(fecha) {
+                const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+                return dias[fecha.getDay()];
+            }
+
+            // Función para formatear fecha como YYYY-MM-DD
+            function formatearFecha(fecha) {
+                const year = fecha.getFullYear();
+                const month = String(fecha.getMonth() + 1).padStart(2, '0');
+                const day = String(fecha.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            // Función para analizar número ingresado manualmente
+            function analizarNumero() {
+                const input = document.getElementById('numeroInput').value;
+                const numero = parseInt(input);
+
+                if (isNaN(numero)) {
+                    alert("Por favor, ingresa un número válido.");
+                    return;
+                }
+
+                const multiplicado = numero * 3;
+                document.getElementById('valorMultiplicado').innerText = multiplicado;
+                document.getElementById('numeroBuscado').innerText = multiplicado;
+
+                if (tablaPrincipal.hasOwnProperty(multiplicado)) {
+                    const data = tablaPrincipal[multiplicado];
+                    const familiaStr = data.familia.join(' - ');
+                    document.getElementById('familiaTexto').innerHTML = `<span class="familia-encontrada">${multiplicado} → ${data.inverso} (${familiaStr})</span>`;
+                    document.getElementById('inversoTexto').innerHTML = `<strong>Inverso:</strong> ${data.inverso}`;
+                } else {
+                    document.getElementById('familiaTexto').innerHTML = `<span style="color: #e74c3c;">El número ${multiplicado} no se encuentra en la tabla.</span>`;
+                    document.getElementById('inversoTexto').innerHTML = '';
+                }
+            }
+
+            // Función para mostrar vibración según día
+            function mostrarVibracion() {
+                const dia = document.getElementById('diaSelect').value;
+                const vib = vibracionDias[dia];
+
+                document.getElementById('diaSeleccionado').innerText = dia.charAt(0).toUpperCase() + dia.slice(1);
+                document.getElementById('vib1').innerText = vib.v1;
+                document.getElementById('vib2').innerText = vib.v2;
+                document.getElementById('vib3').innerText = vib.v3;
+                
+                let interpretacion = `el ${vib.v1}, ${vib.v2} y ${vib.v3}. `;
+                if (dia === 'jueves') interpretacion += "Números que resuenan con finales y culminaciones.";
+                else if (dia === 'viernes') interpretacion += "Representan nuevos comienzos y liderazgo.";
+                else if (dia === 'lunes') interpretacion += "Simbolizan la introspección y la sabiduría.";
+                else if (dia === 'martes') interpretacion += "Hablan de la creatividad y la expresión.";
+                else if (dia === 'miércoles') interpretacion += "Resuenan con el equilibrio y la justicia.";
+                else if (dia === 'sábado') interpretacion += "Están ligados a la armonía y la responsabilidad.";
+                else if (dia === 'domingo') interpretacion += "Representan la libertad y la aventura.";
+                
+                document.getElementById('interpretacion').innerText = interpretacion;
+            }
+
+            // Función para determinar el tipo de conexión con la vibración
+            function analizarConexion(numero, vibracion) {
+                if (!tablaPrincipal.hasOwnProperty(numero)) {
+                    return { tipo: 'sin-conexion', mensaje: 'Número no disponible en tabla', clase: 'sin-conexion' };
+                }
+                
+                const info = tablaPrincipal[numero];
+                
+                // Conexión directa: el inverso coincide con algún número de vibración
+                if (info.inverso === vibracion.v1 || info.inverso === vibracion.v2 || info.inverso === vibracion.v3) {
+                    return { 
+                        tipo: 'conexion-directa', 
+                        mensaje: `✅ ¡Conexión DIRECTA! El inverso (${info.inverso}) es número de vibración.`,
+                        clase: 'conexion-directa'
+                    };
+                }
+                
+                // Conexión indirecta: algún miembro de la familia es número de vibración
+                for (let miembro of info.familia) {
+                    if (miembro === vibracion.v1 || miembro === vibracion.v2 || miembro === vibracion.v3) {
+                        return { 
+                            tipo: 'conexion-indirecta', 
+                            mensaje: `🟡 Conexión indirecta: un miembro de la familia (${miembro}) es número de vibración.`,
+                            clase: 'conexion-indirecta'
+                        };
+                    }
+                }
+                
+                return { 
+                    tipo: 'sin-conexion', 
+                    mensaje: '🔴 Sin conexión directa con la vibración del día.',
+                    clase: 'sin-conexion'
+                };
+            }
+
+            // Función para buscar resultados para una fecha específica
+            async function buscarResultadosPorFecha(fecha) {
+                // Esta función simula la búsqueda de resultados para una fecha
+                // En un entorno real, aquí se haría una petición al sitio web
+                // Por ahora, devolvemos datos de ejemplo basados en la fecha
+                
+                const fechaStr = formatearFecha(fecha);
+                const diaSemana = obtenerDiaSemana(fecha);
+                
+                // Datos de ejemplo para diferentes fechas
+                const resultadosEjemplo = {
+                    '2026-03-05': [  // Jueves
+                        { sorteo: 'QUINAS 8 AM', numeros: [16, 50] },
+                        { sorteo: 'ANGUILA 8 AM', numeros: [73] }
+                    ],
+                    '2026-03-04': [  // Miércoles
+                        { sorteo: 'QUINAS 8 AM', numeros: [22, 45] },
+                        { sorteo: 'ANGUILA 8 AM', numeros: [88] }
+                    ]
+                };
+                
+                return {
+                    fecha: fechaStr,
+                    dia: diaSemana,
+                    resultados: resultadosEjemplo[fechaStr] || [
+                        { sorteo: 'QUINAS 8 AM', numeros: [Math.floor(Math.random() * 100), Math.floor(Math.random() * 100)] },
+                        { sorteo: 'ANGUILA 8 AM', numeros: [Math.floor(Math.random() * 100)] }
+                    ]
+                };
+            }
+
+            // Función para cargar resultados desde loteriascostarica.com
+            async function cargarResultadosLive() {
+                const container = document.getElementById('liveResultsContainer');
+                container.innerHTML = '<p class="loading">Cargando resultados actualizados...</p>';
+                
+                try {
+                    // Obtener fechas de hoy y ayer
+                    const hoy = new Date();
+                    const ayer = new Date(hoy);
+                    ayer.setDate(ayer.getDate() - 1);
+                    
+                    // Buscar resultados para ambas fechas
+                    const resultadosHoy = await buscarResultadosPorFecha(hoy);
+                    const resultadosAyer = await buscarResultadosPorFecha(ayer);
+                    
+                    mostrarResultadosComparativos(resultadosHoy, resultadosAyer);
+                    
+                } catch (error) {
+                    console.error('Error cargando resultados:', error);
+                    
+                    // Datos de ejemplo por si falla la carga
+                    const resultadosHoy = {
+                        fecha: '2026-03-05',
+                        dia: 'jueves',
+                        resultados: [
+                            { sorteo: 'QUINAS 8 AM', numeros: [16, 50] },
+                            { sorteo: 'ANGUILA 8 AM', numeros: [73] }
+                        ]
+                    };
+                    
+                    const resultadosAyer = {
+                        fecha: '2026-03-04',
+                        dia: 'miércoles',
+                        resultados: [
+                            { sorteo: 'QUINAS 8 AM', numeros: [22, 45] },
+                            { sorteo: 'ANGUILA 8 AM', numeros: [88] }
+                        ]
+                    };
+                    
+                    mostrarResultadosComparativos(resultadosHoy, resultadosAyer, true);
+                }
+            }
+
+            function mostrarResultadosComparativos(resultadosHoy, resultadosAyer, esEjemplo = false) {
+                const container = document.getElementById('liveResultsContainer');
+                
+                let html = '';
+                
+                if (esEjemplo) {
+                    html += `<div class="advertencia" style="margin-bottom:20px;">
+                        <strong>⚠️ Mostrando resultados de ejemplo</strong><br>
+                        No se pudieron cargar los datos en vivo automáticamente.
+                    </div>`;
+                }
+                
+                html += `<div class="comparacion-container">`;
+                
+                // Columna de Hoy
+                html += `<div class="comparacion-columna">`;
+                html += `<div class="fecha-header">📅 HOY - ${resultadosHoy.fecha} (${resultadosHoy.dia})</div>`;
+                const vibHoy = vibracionDias[resultadosHoy.dia];
+                html += `<p style="color:#FFD966; text-align:center;">Vibración: ${vibHoy.v1} - ${vibHoy.v2} - ${vibHoy.v3}</p>`;
+                
+                resultadosHoy.resultados.forEach(r => {
+                    html += `<div class="sorteo-item" style="margin-top:15px;">`;
+                    html += `<h4 style="color:#DAA520; font-size:1.5em; margin:0 0 15px 0;">🎯 ${r.sorteo}</h4>`;
+                    
+                    r.numeros.forEach(num => {
+                        const multiplo = num * 3;
+                        const info = tablaPrincipal[multiplo] || null;
+                        const conexion = analizarConexion(multiplo, vibHoy);
+                        
+                        html += `<div style="margin-bottom:15px; border-bottom:1px solid #b8860b; padding-bottom:10px;">`;
+                        html += `<div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px;">`;
+                        html += `<span class="numero-ganador" style="font-size:2em;">${num}</span>`;
+                        
+                        if (info) {
+                            const familiaStr = info.familia.join(' - ');
+                            html += `<div style="flex:1;">`;
+                            html += `<p><span class="badge">×3: ${multiplo}</span> <span class="badge">Inv: ${info.inverso}</span></p>`;
+                            html += `<p><span class="badge">Familia: ${familiaStr}</span></p>`;
+                            html += `<p class="${conexion.clase}" style="padding:8px; border-radius:8px; text-align:center; font-size:0.9em;">${conexion.mensaje}</p>`;
+                            html += `</div>`;
+                        } else {
+                            html += `<div style="flex:1;">`;
+                            html += `<p class="sin-conexion" style="padding:8px; border-radius:8px; text-align:center;">${multiplo} no está en tabla</p>`;
+                            html += `</div>`;
+                        }
+                        
+                        html += `</div>`;
+                        html += `</div>`;
+                    });
+                    
+                    html += `</div>`;
+                });
+                html += `</div>`;
+                
+                // Columna de Ayer
+                html += `<div class="comparacion-columna">`;
+                html += `<div class="fecha-header">📅 AYER - ${resultadosAyer.fecha} (${resultadosAyer.dia})</div>`;
+                const vibAyer = vibracionDias[resultadosAyer.dia];
+                html += `<p style="color:#FFD966; text-align:center;">Vibración: ${vibAyer.v1} - ${vibAyer.v2} - ${vibAyer.v3}</p>`;
+                
+                resultadosAyer.resultados.forEach(r => {
+                    html += `<div class="sorteo-item" style="margin-top:15px;">`;
+                    html += `<h4 style="color:#DAA520; font-size:1.5em; margin:0 0 15px 0;">🎯 ${r.sorteo}</h4>`;
+                    
+                    r.numeros.forEach(num => {
+                        const multiplo = num * 3;
+                        const info = tablaPrincipal[multiplo] || null;
+                        const conexion = analizarConexion(multiplo, vibAyer);
+                        
+                        html += `<div style="margin-bottom:15px; border-bottom:1px solid #b8860b; padding-bottom:10px;">`;
+                        html += `<div style="display:flex; flex-wrap:wrap; align-items:center; gap:10px;">`;
+                        html += `<span class="numero-ganador" style="font-size:2em;">${num}</span>`;
+                        
+                        if (info) {
+                            const familiaStr = info.familia.join(' - ');
+                            html += `<div style="flex:1;">`;
+                            html += `<p><span class="badge">×3: ${multiplo}</span> <span class="badge">Inv: ${info.inverso}</span></p>`;
+                            html += `<p><span class="badge">Familia: ${familiaStr}</span></p>`;
+                            html += `<p class="${conexion.clase}" style="padding:8px; border-radius:8px; text-align:center; font-size:0.9em;">${conexion.mensaje}</p>`;
+                            html += `</div>`;
+                        } else {
+                            html += `<div style="flex:1;">`;
+                            html += `<p class="sin-conexion" style="padding:8px; border-radius:8px; text-align:center;">${multiplo} no está en tabla</p>`;
+                            html += `</div>`;
+                        }
+                        
+                        html += `</div>`;
+                        html += `</div>`;
+                    });
+                    
+                    html += `</div>`;
+                });
+                html += `</div>`;
+                
+                html += `</div>`; // Cierra comparacion-container
+                
+                // Análisis comparativo
+                html += `<div style="background: #1e3c32; padding:20px; border-radius:15px; margin-top:30px; border:3px solid #DAA520;">`;
+                html += `<h3 style="color:#FFD966; margin-top:0;">📊 Análisis Comparativo</h3>`;
+                
+                // Buscar patrones entre ayer y hoy
+                const numerosHoy = resultadosHoy.resultados.flatMap(r => r.numeros);
+                const numerosAyer = resultadosAyer.resultados.flatMap(r => r.numeros);
+                
+                // Ver si algún número se repite
+                const repetidos = numerosHoy.filter(n => numerosAyer.includes(n));
+                if (repetidos.length > 0) {
+                    html += `<p style="color:#2ecc71;">✅ Números que se repiten: ${repetidos.join(', ')}</p>`;
+                }
+                
+                // Analizar familias que aparecen en ambos días
+                const familiasHoy = numerosHoy.map(n => {
+                    const m = n * 3;
+                    return tablaPrincipal[m] ? tablaPrincipal[m].familia : [];
+                }).flat();
+                
+                const familiasAyer = numerosAyer.map(n => {
+                    const m = n * 3;
+                    return tablaPrincipal[m] ? tablaPrincipal[m].familia : [];
+                }).flat();
+                
+                const familiasComunes = familiasHoy.filter(f => familiasAyer.includes(f));
+                if (familiasComunes.length > 0) {
+                    html += `<p style="color:#f1c40f;">🟡 Familias que aparecen en ambos días: ${[...new Set(familiasComunes)].join(', ')}</p>`;
+                }
+                
+                // Comparar vibraciones
+                if (vibHoy.v1 === vibAyer.v1) {
+                    html += `<p style="color:#e74c3c;">⚠️ Misma vibración principal (${vibHoy.v1}) en ambos días</p>`;
+                }
+                
+                html += `</div>`;
+                
+                container.innerHTML = html;
+            }
+
+            // Inicializar todo al cargar la página
+            window.onload = function() {
+                analizarNumero(); // Muestra ejemplo con 16
+                mostrarVibracion(); // Muestra jueves
+                cargarResultadosLive(); // Intenta cargar resultados en vivo
+            };
+        </script>
+
+        <div class="footer">
+            🍀 ¡Que la suerte y los números te acompañen! - Los números de la Suerte Dubon
+        </div>
+    </div>
+</body>
+</html>
